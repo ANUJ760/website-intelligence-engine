@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases and application storage
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+backend/storage/snapshots/
+backend/storage/diffs/
+backend/storage/logs/
+storage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Node.js and Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Playwright & Browsers
+.playwright/
+test-results/
+playwright-report/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
