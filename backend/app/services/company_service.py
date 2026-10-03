@@ -55,4 +55,12 @@ class CompanyService:
 
         db.delete(company)
         db.commit()
+
+        # Delete company snapshot and diff files from disk per §5
+        try:
+            from app.storage.manager import storage_manager
+            storage_manager.delete_company_files(company_id)
+        except Exception:
+            pass  # File deletion failures are logged and must not roll back the DB delete
+
         return True
