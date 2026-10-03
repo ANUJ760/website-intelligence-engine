@@ -6,6 +6,7 @@ from app.models.page import MonitoredPage
 from app.models.crawl import CrawlRun
 from app.models.snapshot import PageSnapshot
 from app.models.change import ChangeEvent
+from app.models.signal import BusinessSignal
 
 __all__ = [
     "Base",
@@ -14,4 +15,5 @@ __all__ = [
     "CrawlRun",
     "PageSnapshot",
     "ChangeEvent",
+    "BusinessSignal",
 ]
