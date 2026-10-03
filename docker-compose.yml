@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: wie-redis
+    restart: unless-stopped
+    ports:
+      # Bind strictly to localhost on host for security per §13
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wie-backend
+    restart: unless-stopped
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      # Bind strictly to localhost on host per §13
+      - "127.0.0.1:8000:8000"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:////app/data/intelligence.db
+      - REDIS_URL=redis://redis:6379/0
+      - SNAPSHOT_DIR=/app/storage/snapshots
+      - DIFF_DIR=/app/storage/diffs
+      - LOG_DIR=/app/storage/logs
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
+      - AI_CLASSIFICATION_ENABLED=false
+    volumes:
+      # Persistent host volume mounts for SQLite DB and extracted snapshots
+      - ./data:/app/data
+      - ./backend/storage:/app/storage
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wie-worker
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:////app/data/intelligence.db
+      - REDIS_URL=redis://redis:6379/0
+      - SNAPSHOT_DIR=/app/storage/snapshots
+      - DIFF_DIR=/app/storage/diffs
+      - LOG_DIR=/app/storage/logs
+      - AI_CLASSIFICATION_ENABLED=false
+    volumes:
+      - ./data:/app/data
+      - ./backend/storage:/app/storage
+    depends_on:
+      - backend
+      - redis
+
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wie-beat
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=sqlite:////app/data/intelligence.db
+      - REDIS_URL=redis://redis:6379/0
+      - SNAPSHOT_DIR=/app/storage/snapshots
+      - DIFF_DIR=/app/storage/diffs
+      - LOG_DIR=/app/storage/logs
+      - AI_CLASSIFICATION_ENABLED=false
+    volumes:
+      - ./data:/app/data
+      - ./backend/storage:/app/storage
+    depends_on:
+      - backend
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wie-frontend
+    restart: unless-stopped
+    ports:
+      # Bind strictly to localhost on host per §13
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:
