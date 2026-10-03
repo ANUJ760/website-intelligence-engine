@@ -22,10 +22,8 @@ data/
 *.db-journal
 *.db-wal
 *.db-shm
-backend/storage/snapshots/
-backend/storage/diffs/
-backend/storage/logs/
-storage/
+backend/storage/
+/storage/
 
 # Environment files
 .env
